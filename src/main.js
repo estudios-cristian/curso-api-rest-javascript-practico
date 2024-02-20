@@ -1,3 +1,33 @@
+/**
+ *
+ * @param {HTMLElement} container
+ * @param {string} classElement
+ * @param {HTMLElement} extraElement
+ */
+function loadingSkeeleton(container, classElement, extraElement) {
+    container.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+        const elementContainer = document.createElement('div');
+        elementContainer.classList.add(classElement, 'skeleton');
+        if (extraElement) {
+            const clonedExtraElement = extraElement.cloneNode(true);
+            elementContainer.appendChild(clonedExtraElement);
+        }
+        container.appendChild(elementContainer);
+    }
+}
+
+const movieImgExtra = document.createElement('div');
+movieImgExtra.classList.add('movie-img', 'skeleton');
+const categoryTitleExtra = document.createElement('h3');
+categoryTitleExtra.classList.add('category-title');
+loadingSkeeleton(trendingMoviesPreviewList, 'movie-container', movieImgExtra);
+loadingSkeeleton(
+    categoriesPreviewList,
+    'category-container',
+    categoryTitleExtra
+);
+
 const api = axios.create({
     baseURL: 'https://api.themoviedb.org/3/',
     headers: {
@@ -59,7 +89,6 @@ function createCategories(categories, container) {
 async function getTrendingMoviesPreview() {
     const { data } = await api('trending/movie/day');
     const movies = data.results;
-
     createMovies(movies, trendingMoviesPreviewList);
 }
 
