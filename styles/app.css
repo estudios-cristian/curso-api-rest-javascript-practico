@@ -339,10 +339,11 @@ footer {
 
 .genericList-container .movie-img {
     width: 100%;
-    max-width: 300px;
     max-height: 450px;
     min-height: 250px;
     height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 /* Movie Detail */

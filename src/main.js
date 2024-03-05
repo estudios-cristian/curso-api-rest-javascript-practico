@@ -86,7 +86,6 @@ function createMovies(movies, container, lazy = false) {
         const movieImg = document.createElement('img');
         movieImg.classList.add('movie-img');
         movieImg.setAttribute('alt', movie.title);
-
         if (lazy) {
             movieImg.dataset[
                 'src'
@@ -96,6 +95,9 @@ function createMovies(movies, container, lazy = false) {
         } else {
             movieImg.src = `https://image.tmdb.org/t/p/w300${movie.poster_path}`;
         }
+        movieImg.addEventListener('error', () => {
+            movieImg.src = 'https://via.placeholder.com/300x450';
+        });
 
         movieContainer.appendChild(movieImg);
         container.appendChild(movieContainer);
@@ -157,7 +159,7 @@ async function getMoviesBySearch(query) {
     });
     const movies = data.results;
 
-    createMovies(movies, genericSection);
+    createMovies(movies, genericSection, true);
 }
 
 async function getTrendingMovies() {
