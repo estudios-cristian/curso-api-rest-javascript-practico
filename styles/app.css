@@ -216,6 +216,7 @@ footer {
     height: 241px;
     padding-left: 24px;
     padding-bottom: 16px;
+    display: flex;
 }
 
 .trendingPreview-movieList .movie-container {
@@ -321,6 +322,15 @@ footer {
     flex-wrap: wrap;
     padding: 32px 24px;
 }
+.genericList-container .skeleton {
+    width: 100%;
+    height: var(--data-height);
+}
+.genericList-container:has(.skeleton) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
 
 .genericList-container .movie-container {
     display: inline-block;
@@ -329,6 +339,10 @@ footer {
 
 .genericList-container .movie-img {
     width: 100%;
+    max-width: 300px;
+    max-height: 450px;
+    min-height: 250px;
+    height: 100%;
 }
 
 /* Movie Detail */
