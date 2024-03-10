@@ -16,6 +16,9 @@ function loadingSkeeleton(container, classElement, extraElement) {
         container.appendChild(elementContainer);
     }
 }
+let globalQuery = '';
+let pageGlobal = 1;
+let totalPages = 0;
 
 const movieImgExtra = document.createElement('div');
 movieImgExtra.classList.add('movie-img', 'skeleton');
@@ -73,9 +76,15 @@ const lazyLoader = new IntersectionObserver(
     { threshold: 0.5 }
 );
 
-function createMovies(movies, container, lazy = false) {
-    container.innerHTML = '';
-
+function createMovies(
+    movies,
+    container,
+    { lazy, infinity } = { lazy: false, infinity: false }
+) {
+    if (!infinity) {
+        container.innerHTML = '';
+    }
+    if (!movies) return;
     movies.forEach((movie) => {
         const movieContainer = document.createElement('div');
         movieContainer.classList.add('movie-container');
@@ -102,6 +111,7 @@ function createMovies(movies, container, lazy = false) {
         movieContainer.appendChild(movieImg);
         container.appendChild(movieContainer);
     });
+    deleteSkeletons();
 }
 
 function createCategories(categories, container) {
@@ -116,6 +126,7 @@ function createCategories(categories, container) {
         categoryTitle.setAttribute('id', 'id' + category.id);
         categoryTitle.addEventListener('click', () => {
             location.hash = `#category=${category.id}-${category.name}`;
+            globalQuery = category.name;
         });
         const categoryTitleText = document.createTextNode(category.name);
 
@@ -151,15 +162,49 @@ async function getMoviesByCategory(id) {
     createMovies(movies, genericSection, true);
 }
 
-async function getMoviesBySearch(query) {
+const deleteSkeletons = () => {
+    Array.from(document.querySelectorAll('.skeleton')).forEach((skeleton) => {
+        skeleton.remove();
+    });
+};
+
+const getByQuery = async ({ query }) => {
     const { data } = await api('search/movie', {
         params: {
             query,
+            page: pageGlobal,
         },
     });
     const movies = data.results;
+    totalPages = data.total_pages;
+    return movies;
+};
 
-    createMovies(movies, genericSection, true);
+const getPaginatedMovies = async ({ page, query, endpoint } = { page: 1 }) => {
+    const movies = await getByQuery({ query, endpoint });
+    return movies;
+};
+document.addEventListener('scroll', async () => {
+    const { clientHeight, scrollHeight, scrollTop } = document.documentElement;
+    const scrollIsEnd = scrollTop + clientHeight >= scrollHeight - 15;
+    if (scrollIsEnd && totalPages >= pageGlobal) {
+        ++pageGlobal;
+
+        const movies = await getPaginatedMovies({
+            page: pageGlobal,
+            query: globalQuery,
+            endpoint: 'search/movie',
+        });
+        createMovies(movies, genericSection, {
+            lazy: true,
+            infinity: true,
+        });
+    }
+});
+
+async function getMoviesBySearch(query) {
+    const movies = await getByQuery({ query });
+    createMovies(movies, genericSection, { lazy: true, infinity: true });
 }
 
 async function getTrendingMovies() {

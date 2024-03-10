@@ -324,11 +324,12 @@ footer {
 }
 .genericList-container .skeleton {
     width: 100%;
-    height: var(--data-height);
+    height: 320px;
 }
-.genericList-container:has(.skeleton) {
+.genericList-container:has(.skeleton):not(.inactive) {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    min-height: 100%;
     gap: 16px;
 }
 

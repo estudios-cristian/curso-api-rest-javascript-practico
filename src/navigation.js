@@ -116,6 +116,7 @@ function searchPage() {
 
   // ['#search', 'platzi']
   const [_, query] = location.hash.split('=');
+  globalQuery = query;
   getMoviesBySearch(query);
 }
 
