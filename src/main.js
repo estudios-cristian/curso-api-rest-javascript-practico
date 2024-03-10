@@ -19,6 +19,7 @@ function loadingSkeeleton(container, classElement, extraElement) {
 let globalQuery = '';
 let pageGlobal = 1;
 let totalPages = 0;
+let globalEndpoint = '';
 
 const movieImgExtra = document.createElement('div');
 movieImgExtra.classList.add('movie-img', 'skeleton');
@@ -151,25 +152,14 @@ async function getCategegoriesPreview() {
     createCategories(categories, categoriesPreviewList);
 }
 
-async function getMoviesByCategory(id) {
-    const { data } = await api('discover/movie', {
-        params: {
-            with_genres: id,
-        },
-    });
-    const movies = data.results;
-
-    createMovies(movies, genericSection, true);
-}
-
 const deleteSkeletons = () => {
     Array.from(document.querySelectorAll('.skeleton')).forEach((skeleton) => {
         skeleton.remove();
     });
 };
 
-const getByQuery = async ({ query }) => {
-    const { data } = await api('search/movie', {
+const getMovies = async ({ query, endpoint }) => {
+    const { data } = await api(endpoint, {
         params: {
             query,
             page: pageGlobal,
@@ -177,11 +167,22 @@ const getByQuery = async ({ query }) => {
     });
     const movies = data.results;
     totalPages = data.total_pages;
+    globalEndpoint = endpoint;
     return movies;
 };
 
+async function getMoviesByCategory(id) {
+    getMovies({
+        endpoint: 'discover/movie',
+        query: {
+            with_genres: id,
+        },
+    });
+    createMovies(movies, genericSection, true);
+}
+
 const getPaginatedMovies = async ({ page, query, endpoint } = { page: 1 }) => {
-    const movies = await getByQuery({ query, endpoint });
+    const movies = await getMovies({ query, endpoint });
     return movies;
 };
 document.addEventListener('scroll', async () => {
@@ -193,7 +194,7 @@ document.addEventListener('scroll', async () => {
         const movies = await getPaginatedMovies({
             page: pageGlobal,
             query: globalQuery,
-            endpoint: 'search/movie',
+            endpoint: globalEndpoint,
         });
         createMovies(movies, genericSection, {
             lazy: true,
@@ -203,17 +204,17 @@ document.addEventListener('scroll', async () => {
 });
 
 async function getMoviesBySearch(query) {
-    const movies = await getByQuery({ query });
+    console.log(query);
+    const movies = await getMovies({ query, endpoint: '/' });
     createMovies(movies, genericSection, { lazy: true, infinity: true });
 }
-
 async function getTrendingMovies() {
-    const { data } = await api('trending/movie/day');
-    const movies = data.results;
+    const movies = await getMovies({
+        endpoint: 'trending/movie/day',
+    });
 
     createMovies(movies, genericSection);
 }
-
 async function getMovieById(id) {
     const { data: movie } = await api('movie/' + id);
 
