@@ -96,23 +96,38 @@ button {
 /* Shared */
 .header-container,
 .trendingPreview-header,
-.categoriesPreview-container {
+.categoriesPreview-container,
+.liked-header {
     padding: 0 24px;
 }
 
 .trendingPreview-container,
 .categoriesPreview-container,
-footer {
+footer,
+.liked-container {
     margin-top: 48px;
 }
 
 .trendingPreview-header,
-.categoriesPreview-title {
+.categoriesPreview-title,
+.liked-header {
     margin-bottom: 24px;
 }
 
 .movie-container {
     cursor: pointer;
+}
+.movie-container:hover {
+    position: relative;
+}
+.movie-container:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    border-radius: 8px;
 }
 
 .movie-img {
@@ -197,7 +212,8 @@ footer {
 }
 
 /* Trending */
-.trendingPreview-header {
+.trendingPreview-header,
+.liked-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -209,7 +225,8 @@ footer {
     width: 72px;
 }
 
-.trendingPreview-movieList {
+.trendingPreview-movieList,
+.liked-movielist {
     overflow-x: scroll;
     overflow-y: hidden;
     white-space: nowrap;
@@ -219,12 +236,15 @@ footer {
     display: flex;
 }
 
-.trendingPreview-movieList .movie-container {
+.trendingPreview-movieList .movie-container,
+.liked-movielist .movie-container {
     display: inline-block;
     margin-right: 8px;
 }
 
-.trendingPreview-movieList .movie-container .movie-img {
+.trendingPreview-movieList .movie-container .movie-img,
+.liked-movielist .movie-container .movie-img,
+.trendingPreview-movieList .movie-container:has(.movie-img) {
     height: 225px;
     min-height: 225px;
     max-height: 225px;
@@ -445,3 +465,34 @@ footer {
         background-color: var(--purple-light-1);
     }
 }
+.movie-buttons {
+    display: none;
+}
+.movie-container:hover .movie-buttons {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    height: 100%;
+    align-items: flex-end;
+}
+.movie-buttons button {
+    padding: 8px;
+    border-radius: 200px;
+}
+.movie-container:hover .movie-buttons div {
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.35) 19.27%,
+        rgba(0, 0, 0, 0) 29.17%
+    );
+    display: flex;
+    height: 30%;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+

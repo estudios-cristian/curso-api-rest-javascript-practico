@@ -20,6 +20,7 @@ let globalQuery = '';
 let pageGlobal = 1;
 let totalPages = 0;
 let globalEndpoint = '';
+let loading = false;
 
 const movieImgExtra = document.createElement('div');
 movieImgExtra.classList.add('movie-img', 'skeleton');
@@ -76,6 +77,7 @@ const lazyLoader = new IntersectionObserver(
     },
     { threshold: 0.5 }
 );
+let globalMovies = [];
 
 function createMovies(
     movies,
@@ -86,16 +88,23 @@ function createMovies(
         container.innerHTML = '';
     }
     if (!movies) return;
+    globalMovies = movies;
     movies.forEach((movie) => {
         const movieContainer = document.createElement('div');
         movieContainer.classList.add('movie-container');
-        movieContainer.addEventListener('click', () => {
-            location.hash = '#movie=' + movie.id;
+
+        movieContainer.addEventListener('click', (event) => {
+            if (event.target.id === 'movie-buttons') {
+                location.hash = '#movie=' + movie.id;
+            }
         });
+        movieContainer.dataset.id = movie.id;
+        movieContainer.dataset.liked = 'false';
 
         const movieImg = document.createElement('img');
         movieImg.classList.add('movie-img');
         movieImg.setAttribute('alt', movie.title);
+
         if (lazy) {
             movieImg.dataset[
                 'src'
@@ -159,6 +168,7 @@ const deleteSkeletons = () => {
 };
 
 const getMovies = async ({ query, endpoint }) => {
+    loading = true;
     const { data } = await api(endpoint, {
         params: {
             query,
@@ -168,11 +178,12 @@ const getMovies = async ({ query, endpoint }) => {
     const movies = data.results;
     totalPages = data.total_pages;
     globalEndpoint = endpoint;
+    loading = false;
     return movies;
 };
 
 async function getMoviesByCategory(id) {
-    getMovies({
+    const movies = await getMovies({
         endpoint: 'discover/movie',
         query: {
             with_genres: id,
@@ -188,7 +199,7 @@ const getPaginatedMovies = async ({ page, query, endpoint } = { page: 1 }) => {
 document.addEventListener('scroll', async () => {
     const { clientHeight, scrollHeight, scrollTop } = document.documentElement;
     const scrollIsEnd = scrollTop + clientHeight >= scrollHeight - 15;
-    if (scrollIsEnd && totalPages >= pageGlobal) {
+    if (scrollIsEnd && totalPages >= pageGlobal && !loading) {
         ++pageGlobal;
 
         const movies = await getPaginatedMovies({
@@ -204,8 +215,7 @@ document.addEventListener('scroll', async () => {
 });
 
 async function getMoviesBySearch(query) {
-    console.log(query);
-    const movies = await getMovies({ query, endpoint: '/' });
+    const movies = await getMovies({ query, endpoint: 'search/movie' });
     createMovies(movies, genericSection, { lazy: true, infinity: true });
 }
 async function getTrendingMovies() {
@@ -244,3 +254,55 @@ async function getRelatedMoviesId(id) {
 
     createMovies(relatedMovies, relatedMoviesContainer);
 }
+
+document.addEventListener('mouseover', (e) => {
+    if (e.target.matches('.movie-container')) {
+        const buttonLike = document.createElement('button');
+        if (e.target.querySelector('#movie-buttons')) return;
+        buttonLike.id = 'likeButton';
+        buttonLike.textContent = '👍';
+
+        const div = document.createElement('div');
+        const secondDiv = document.createElement('div');
+        secondDiv.appendChild(buttonLike);
+        div.appendChild(secondDiv);
+        div.id = 'movie-buttons';
+        div.classList.add('movie-buttons');
+
+        e.target.appendChild(div);
+    }
+});
+document.addEventListener('mouseout', (e) => {
+    if (
+        !e.target.closest('.movie-container') &&
+        e.target.querySelector('.movie-buttons')
+    ) {
+        e.target.querySelector('.movie-buttons').remove();
+    }
+});
+const likedMovieList = () =>
+    JSON.parse(localStorage.getItem('likedMovies')) || {};
+
+const likeMovie = (idMovie) => {
+    const likedMovies = likedMovieList();
+    if (likedMovies[idMovie]) {
+        delete likedMovies[idMovie];
+    } else {
+        const liked = globalMovies.find((movie) => movie.id == idMovie);
+        likedMovies[idMovie] = liked;
+    }
+    localStorage.setItem('likedMovies', JSON.stringify(likedMovies));
+};
+
+document.addEventListener('click', (e) => {
+    if (e.target.matches('#likeButton')) {
+        const container = e.target.closest('.movie-container');
+        if (container.dataset.liked === 'true') {
+            container.dataset.liked = 'false';
+            e.target.textContent = '👍';
+        } else {
+            container.dataset.liked = 'true';
+        }
+        likeMovie(container.dataset.id);
+    }
+});
